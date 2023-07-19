@@ -4,7 +4,19 @@ import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+TRAINING_EPOCHS = 5_000
+
 loss_values = []
+
+if torch.backends.mps.is_available():
+    device = torch.device("mps")
+elif torch.cuda.is_available():
+    device = torch.device("cuda")
+else:
+    device = torch.device("cpu")
+
+device = torch.device("cpu")
 
 # Define the neural network
 class Net(nn.Module):
@@ -26,7 +38,7 @@ class Net(nn.Module):
         return out
 
 # Instantiate the network
-net = Net(input_size=1, hidden_size=70, output_size=1)
+net = Net(input_size=1, hidden_size=70, output_size=1).to(device)
 
 # Define a loss function and optimizer
 criterion = nn.MSELoss()
@@ -34,10 +46,10 @@ criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 
 # Generate some training data
-x_train = np.linspace(-15, 20, 1000).reshape(-1, 1).astype('float32')
+x_train = np.linspace(-15, 30, 10).reshape(-1, 1).astype('float32')
 # y_train = (2*x_train + 1).astype('float32')  # Linear function
-# y_train = (3*x_train**2 + 2*x_train + 1).astype('float32')  # 2nd degree polynomial
-y_train = (9*x_train**3 + -3*x_train**2 + 2*x_train + 1).astype('float32')  # 3rd degree polynomial
+y_train = (3*x_train**2 + 2*x_train + 1).astype('float32')  # 2nd degree polynomial
+# y_train = (9*x_train**3 + -3*x_train**2 + 2*x_train + 1).astype('float32')  # 3rd degree polynomial
 # y_train = (y_train - y_train.mean()) / y_train.std()
 
 train_data = [(x_train, y_train)] #, (x_train, y_train_poly2), (x_train, y_train_poly3)]
@@ -45,18 +57,18 @@ train_data = [(x_train, y_train)] #, (x_train, y_train_poly2), (x_train, y_train
 # Generate some test data
 x_test = np.linspace(-30, 20, 100).reshape(-1, 1).astype('float32')
 # y_test = (2*x_test + 1).astype('float32')  # Linear function
-# y_test = (3*x_test**2 + 2*x_test + 1).astype('float32')  # 2nd degree polynomial
-y_test = (9*x_test**3 + -3*x_test**2 + 2*x_test + 1).astype('float32')  # 3rd degree polynomial
+y_test = (3*x_test**2 + 2*x_test + 1).astype('float32')  # 2nd degree polynomial
+# y_test = (9*x_test**3 + -3*x_test**2 + 2*x_test + 1).astype('float32')  # 3rd degree polynomial
 # y_test = (y_test - y_test.mean()) / y_test.std()
 
 # print(f'x_train: {x_train.shape}', x_train)
 
 for x_train, y_train in train_data:
-    x_train = torch.from_numpy(x_train)
-    y_train = torch.from_numpy(y_train)
+    x_train = torch.from_numpy(x_train).to(device)
+    y_train = torch.from_numpy(y_train).to(device)
 
     # Train the network
-    for epoch in range(15_000):  # loop over the dataset multiple times
+    for epoch in range(TRAINING_EPOCHS):  # loop over the dataset multiple times
       # zero the parameter gradients
       optimizer.zero_grad()
 
@@ -101,8 +113,8 @@ plt.savefig('loss_plot.svg', format='svg')
 test_data = [(x_test, y_test)]
 
 for x_test, y_test in test_data:
-    x_test = torch.from_numpy(x_test)
-    y_test = torch.from_numpy(y_test)
+    x_test = torch.from_numpy(x_test).to(device)
+    y_test = torch.from_numpy(y_test).to(device)
 
     # Test the network
     net.eval()  # set the network to evaluation mode
@@ -115,7 +127,7 @@ for x_test, y_test in test_data:
 
 
 # make predictions on the test data
-y_pred = net(x_test).detach().numpy()
+y_pred = net(x_test).detach().cpu().numpy()
 
 # find the minimum and maximum values of x and y for the data and predictions
 x_min = min(x_train.min(), x_test.min())
