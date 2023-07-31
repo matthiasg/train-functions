@@ -1,3 +1,8 @@
+# Example of a NN trying to learn a binomial
+#
+# Also see https://stackoverflow.com/questions/55170460/neural-network-for-square-x2-approximation for other
+# discussion on this topic
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -6,9 +11,10 @@ import matplotlib.pyplot as plt
 
 print('TORCH', torch.__version__)
 
-TRAINING_EPOCHS = 25_000
-TRAINING_SAMPLES_OVER_FUNCTION = 15
+TRAINING_EPOCHS = 5_000
+TRAINING_SAMPLES_OVER_FUNCTION = 50
 TEST_SAMPLES_OVER_FUNCTION = 100
+HIDDEN_SIZE=50
 
 loss_values = []
 
@@ -35,27 +41,34 @@ class Net(nn.Module):
         self.relu4 = nn.ReLU()
         self.fc5 = nn.Linear(hidden_size, hidden_size)
         self.relu5 = nn.ReLU()
-        self.fc6 = nn.Linear(hidden_size, output_size)
+        self.fc6 = nn.Linear(hidden_size, hidden_size)
+        self.relu6 = nn.ReLU()
+        self.fc7 = nn.Linear(hidden_size, hidden_size)
+        self.relu7 = nn.ReLU()
+        self.fc8 = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
         out = self.relu1(self.fc1(x))
         out = self.relu2(self.fc2(out))
-        # out = self.relu3(self.fc3(out))
-        # out = self.relu4(self.fc4(out))
+        out = self.relu3(self.fc3(out))
+        out = self.relu4(self.fc4(out))
         # out = self.relu5(self.fc5(out))
-        out = self.fc6(out)
+        # out = self.relu6(self.fc6(out))
+        # out = self.relu7(self.fc7(out))
+        out = self.fc8(out)
         return out
 
 # Instantiate the network
-net = Net(input_size=1, hidden_size=70, output_size=1).to(device)
+net = Net(input_size=1, hidden_size=HIDDEN_SIZE, output_size=1).to(device)
 
 # Define a loss function and optimizer
 criterion = nn.MSELoss()
 # optimizer = torch.optim.SGD(net.parameters(), lr=1e-6)
-optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.001, weight_decay=0.001)
 
 # Generate some training data
-x_train = np.linspace(-15, 30, TRAINING_SAMPLES_OVER_FUNCTION).reshape(-1, 1).astype('float32')
+# x_train = np.linspace(-15, 30, TRAINING_SAMPLES_OVER_FUNCTION).reshape(-1, 1).astype('float32')
+x_train = np.random.uniform(-55, 40, TRAINING_SAMPLES_OVER_FUNCTION).reshape(-1, 1).astype('float32')
 # y_train = (2*x_train + 1).astype('float32')  # Linear function
 y_train = (3*x_train**2 + 2*x_train + 1).astype('float32')  # 2nd degree polynomial
 # y_train = (9*x_train**3 + -3*x_train**2 + 2*x_train + 1).astype('float32')  # 3rd degree polynomial
@@ -64,7 +77,7 @@ y_train = (3*x_train**2 + 2*x_train + 1).astype('float32')  # 2nd degree polynom
 train_data = [(x_train, y_train)] #, (x_train, y_train_poly2), (x_train, y_train_poly3)]
 
 # Generate some test data
-x_test = np.linspace(-30, 20, TEST_SAMPLES_OVER_FUNCTION).reshape(-1, 1).astype('float32')
+x_test = np.linspace(-70, 60, TEST_SAMPLES_OVER_FUNCTION).reshape(-1, 1).astype('float32')
 # y_test = (2*x_test + 1).astype('float32')  # Linear function
 y_test = (3*x_test**2 + 2*x_test + 1).astype('float32')  # 2nd degree polynomial
 # y_test = (9*x_test**3 + -3*x_test**2 + 2*x_test + 1).astype('float32')  # 3rd degree polynomial
