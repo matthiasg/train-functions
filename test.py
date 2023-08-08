@@ -118,6 +118,7 @@ for x_train, y_train in train_data:
 
 # create the plot
 plt.plot(loss_values)
+plt.yscale('log')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.title('Training Loss')

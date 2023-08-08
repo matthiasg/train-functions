@@ -106,6 +106,7 @@ print('Finished Training for function')
 
 # create the plot
 plt.plot(loss_values)
+plt.yscale('log')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.title('Training Loss')
